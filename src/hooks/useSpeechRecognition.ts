@@ -58,26 +58,40 @@ export const useSpeechRecognition = ({ onResult, language = 'English' }: UseSpee
   }, [language]); // Only re-initialize when language changes
 
   const startListening = useCallback(async () => {
+    // Check for secure context (HTTPS) which is required for Speech Recognition
+    if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+      alert('Voice support requires a secure connection (HTTPS). Please ensure your Hostinger site has an SSL certificate enabled.');
+      return;
+    }
+
     if (recognition) {
       try {
         // Explicitly request microphone permission first to ensure prompt appears
-        await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          await navigator.mediaDevices.getUserMedia({ audio: true });
+        }
         recognition.start();
       } catch (error: any) {
         console.error('Failed to start recognition:', error);
         if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-          alert('Microphone access is blocked. Please enable it in your browser settings.');
+          alert('Microphone access is blocked. Please enable it in your browser settings and ensure you are using HTTPS.');
         } else {
           // If getUserMedia fails but it's not a permission error, try starting recognition anyway
           try {
             recognition.start();
           } catch (e) {
             console.error('Final attempt to start recognition failed:', e);
+            alert('Could not start voice recognition. Please check your microphone and ensure you are using a supported browser like Chrome on HTTPS.');
           }
         }
       }
     } else {
-      alert('Speech recognition is not supported in this browser.');
+      const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+      if (!isChrome) {
+        alert('Speech recognition is best supported in Google Chrome. Please try using Chrome.');
+      } else {
+        alert('Speech recognition is not supported in this browser or environment. Ensure you are using HTTPS.');
+      }
     }
   }, [recognition]);
 

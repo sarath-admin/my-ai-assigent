@@ -13,6 +13,7 @@ export const useTextToSpeech = () => {
   const speak = useCallback((text: string, language: string = 'English') => {
     if (!('speechSynthesis' in window)) {
       console.error('Speech synthesis is not supported in this browser.');
+      alert('Your browser does not support voice output. Please try using Google Chrome on a secure (HTTPS) connection.');
       return;
     }
 
