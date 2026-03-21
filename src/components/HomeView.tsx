@@ -82,10 +82,17 @@ export const HomeView: React.FC<HomeProps> = ({
   }, [isListening, startListening, stopListening]);
 
   const handleFieldVoiceInput = React.useCallback((fieldName: string) => {
-    if (isListening && voiceTargetField === fieldName) {
-      stopListening();
-      setVoiceTargetField(null);
+    if (isListening) {
+      if (voiceTargetField === fieldName) {
+        // Toggle off if clicking the same field
+        stopListening();
+        setVoiceTargetField(null);
+      } else {
+        // Switch target to this field without restarting if already listening
+        setVoiceTargetField(fieldName);
+      }
     } else {
+      // Start listening for this field
       setVoiceTargetField(fieldName);
       startListening();
     }
@@ -367,7 +374,7 @@ export const HomeView: React.FC<HomeProps> = ({
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                           {field.label}
                         </label>
-                        {field.type !== 'select' && field.type !== 'date' && (
+                        {field.type !== 'select' && (
                           <button 
                             onClick={() => handleFieldVoiceInput(field.name)}
                             className={`p-1 rounded-full transition-colors ${isListening && voiceTargetField === field.name ? 'text-red-500 animate-pulse' : 'text-slate-400 hover:text-blue-500'}`}
