@@ -1,0 +1,165 @@
+import { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { Onboarding } from './components/Onboarding';
+import { HomeView } from './components/HomeView';
+import { ChatView } from './components/ChatView';
+import { ProfileView } from './components/ProfileView';
+import { SettingsView } from './components/SettingsView';
+import { HistoryView } from './components/HistoryView';
+import { Screen, AppState, UserProfile } from './types';
+
+export default function App() {
+  const [screen, setScreen] = useState<Screen>('onboarding');
+  const [state, setState] = useState<AppState>({
+    profile: {
+      name: 'Mahmud Saimon',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mahmud'
+    },
+    theme: 'light',
+    onboardingVideo: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-blue-lines-4432-large.mp4',
+    onboardingImage: 'https://picsum.photos/seed/skinfotech-solutions/800/800',
+    activities: [],
+    expenses: [],
+    investments: [],
+    purchases: [],
+    incomes: [],
+    bills: [],
+    reminders: [],
+    notes: []
+  });
+
+  const handleUpdateProfile = (profile: UserProfile) => {
+    setState(prev => ({ ...prev, profile }));
+  };
+
+  const handleThemeChange = (theme: 'light' | 'dark' | 'blue') => {
+    setState(prev => ({ ...prev, theme }));
+  };
+
+  const handleUpdateOnboarding = (video: string, image: string) => {
+    setState(prev => ({ ...prev, onboardingVideo: video, onboardingImage: image }));
+  };
+
+  const addActivity = (data: any) => {
+    setState(prev => ({ ...prev, activities: [{ id: Date.now().toString(), ...data }, ...prev.activities] }));
+  };
+
+  const addExpense = (data: any) => {
+    setState(prev => ({ ...prev, expenses: [{ id: Date.now().toString(), ...data }, ...prev.expenses] }));
+  };
+
+  const addInvestment = (data: any) => {
+    setState(prev => ({ ...prev, investments: [{ id: Date.now().toString(), ...data }, ...prev.investments] }));
+  };
+
+  const addPurchase = (data: any) => {
+    setState(prev => ({ ...prev, purchases: [{ id: Date.now().toString(), ...data }, ...prev.purchases] }));
+  };
+
+  const addIncome = (data: any) => {
+    setState(prev => ({ ...prev, incomes: [{ id: Date.now().toString(), ...data }, ...prev.incomes] }));
+  };
+
+  const addBill = (data: any) => {
+    setState(prev => ({ ...prev, bills: [{ id: Date.now().toString(), ...data }, ...prev.bills] }));
+  };
+
+  const addReminder = (data: any) => {
+    setState(prev => ({ ...prev, reminders: [{ id: Date.now().toString(), ...data }, ...prev.reminders] }));
+  };
+
+  const addNote = (data: any) => {
+    setState(prev => ({ ...prev, notes: [{ id: Date.now().toString(), ...data }, ...prev.notes] }));
+  };
+
+  // Theme effect
+  useEffect(() => {
+    const root = document.documentElement;
+    if (state.theme === 'dark') {
+      root.classList.add('dark');
+      root.style.setProperty('--bg-color', '#0f172a');
+    } else if (state.theme === 'blue') {
+      root.classList.remove('dark');
+      root.style.setProperty('--bg-color', '#f0f9ff');
+    } else {
+      root.classList.remove('dark');
+      root.style.setProperty('--bg-color', '#f8fafc');
+    }
+  }, [state.theme]);
+
+  return (
+    <div className={`flex items-center justify-center min-h-screen p-4 transition-colors duration-500`} style={{ backgroundColor: state.theme === 'dark' ? '#1e293b' : '#e2e8f0' }}>
+      {/* Mobile Frame Container */}
+      <div className="relative w-full max-w-[400px] h-[800px] bg-white rounded-[3rem] shadow-2xl overflow-hidden border-[8px] border-slate-900">
+        {/* Status Bar Notch */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-50" />
+        
+        <div className="h-full w-full relative">
+          <AnimatePresence mode="wait">
+            {screen === 'onboarding' && (
+              <motion.div key="onboarding" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ x: -100, opacity: 0 }} className="h-full w-full">
+                <Onboarding 
+                  videoUrl={state.onboardingVideo}
+                  imageUrl={state.onboardingImage}
+                  onStart={() => setScreen('home')} 
+                />
+              </motion.div>
+            )}
+
+            {screen === 'home' && (
+              <motion.div key="home" initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -100, opacity: 0 }} className="h-full w-full">
+                <HomeView 
+                  profile={state.profile} 
+                  onNavigate={setScreen}
+                  onAddActivity={addActivity}
+                  onAddExpense={addExpense}
+                  onAddInvestment={addInvestment}
+                  onAddPurchase={addPurchase}
+                  onAddIncome={addIncome}
+                  onAddBill={addBill}
+                  onAddReminder={addReminder}
+                  onAddNote={addNote}
+                />
+              </motion.div>
+            )}
+
+            {screen === 'chat' && (
+              <motion.div key="chat" initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }} className="h-full w-full">
+                <ChatView onBack={() => setScreen('home')} />
+              </motion.div>
+            )}
+
+            {screen === 'profile' && (
+              <motion.div key="profile" initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} className="h-full w-full">
+                <ProfileView profile={state.profile} onUpdate={handleUpdateProfile} onBack={() => setScreen('home')} />
+              </motion.div>
+            )}
+
+            {screen === 'settings' && (
+              <motion.div key="settings" initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} className="h-full w-full">
+                <SettingsView 
+                  theme={state.theme} 
+                  onboardingVideo={state.onboardingVideo}
+                  onboardingImage={state.onboardingImage}
+                  onThemeChange={handleThemeChange} 
+                  onUpdateOnboarding={handleUpdateOnboarding}
+                  onBack={() => setScreen('home')} 
+                />
+              </motion.div>
+            )}
+
+            {screen === 'history' && (
+              <motion.div key="history" initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} className="h-full w-full">
+                <HistoryView state={state} onBack={() => setScreen('home')} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Home Indicator */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-slate-200 rounded-full z-50" />
+      </div>
+    </div>
+  );
+}
+
