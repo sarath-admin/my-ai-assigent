@@ -57,12 +57,24 @@ export const useSpeechRecognition = ({ onResult, language = 'English' }: UseSpee
     }
   }, [language]); // Only re-initialize when language changes
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     if (recognition) {
       try {
+        // Explicitly request microphone permission first to ensure prompt appears
+        await navigator.mediaDevices.getUserMedia({ audio: true });
         recognition.start();
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to start recognition:', error);
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          alert('Microphone access is blocked. Please enable it in your browser settings.');
+        } else {
+          // If getUserMedia fails but it's not a permission error, try starting recognition anyway
+          try {
+            recognition.start();
+          } catch (e) {
+            console.error('Final attempt to start recognition failed:', e);
+          }
+        }
       }
     } else {
       alert('Speech recognition is not supported in this browser.');

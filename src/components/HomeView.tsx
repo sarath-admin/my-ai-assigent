@@ -90,7 +90,8 @@ export const HomeView: React.FC<HomeProps> = ({
       color: 'bg-blue-50 text-blue-500',
       fields: [
         { name: 'target', label: 'Target/Goal', type: 'text', placeholder: 'e.g. 5km Run' },
-        { name: 'expense', label: 'Expense (₹)', type: 'number', placeholder: '0' }
+        { name: 'expense', label: 'Expense (₹)', type: 'number', placeholder: '0' },
+        { name: 'targetDate', label: 'Target Date', type: 'date' }
       ],
       onSubmit: (data: any) => onAddActivity({ ...getCurrentDateTime(), ...data })
     },
@@ -101,7 +102,8 @@ export const HomeView: React.FC<HomeProps> = ({
       color: 'bg-red-50 text-red-500',
       fields: [
         { name: 'description', label: 'Description', type: 'text', placeholder: 'e.g. Lunch' },
-        { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' }
+        { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
+        { name: 'targetDate', label: 'Target Date', type: 'date' }
       ],
       onSubmit: (data: any) => onAddExpense({ ...getCurrentDateTime(), ...data })
     },
@@ -112,7 +114,8 @@ export const HomeView: React.FC<HomeProps> = ({
       color: 'bg-emerald-50 text-emerald-500',
       fields: [
         { name: 'type', label: 'Investment Type', type: 'text', placeholder: 'e.g. Stocks, Gold' },
-        { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' }
+        { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
+        { name: 'targetDate', label: 'Target Date', type: 'date' }
       ],
       onSubmit: (data: any) => onAddInvestment({ ...getCurrentDateTime(), ...data })
     },
@@ -123,7 +126,8 @@ export const HomeView: React.FC<HomeProps> = ({
       color: 'bg-purple-50 text-purple-500',
       fields: [
         { name: 'items', label: 'Items Purchased', type: 'text', placeholder: 'e.g. Groceries' },
-        { name: 'amount', label: 'Total Amount (₹)', type: 'number', placeholder: '0' }
+        { name: 'amount', label: 'Total Amount (₹)', type: 'number', placeholder: '0' },
+        { name: 'targetDate', label: 'Target Date', type: 'date' }
       ],
       onSubmit: (data: any) => onAddPurchase({ ...getCurrentDateTime(), ...data })
     },
@@ -134,7 +138,8 @@ export const HomeView: React.FC<HomeProps> = ({
       color: 'bg-cyan-50 text-cyan-500',
       fields: [
         { name: 'source', label: 'Income Source', type: 'text', placeholder: 'e.g. Salary' },
-        { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' }
+        { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
+        { name: 'targetDate', label: 'Target Date', type: 'date' }
       ],
       onSubmit: (data: any) => onAddIncome({ ...getCurrentDateTime(), ...data })
     },
@@ -145,7 +150,8 @@ export const HomeView: React.FC<HomeProps> = ({
       color: 'bg-orange-50 text-orange-500',
       fields: [
         { name: 'name', label: 'Bill Name', type: 'text', placeholder: 'e.g. Electricity' },
-        { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' }
+        { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
+        { name: 'targetDate', label: 'Target Date', type: 'date' }
       ],
       onSubmit: (data: any) => onAddBill({ ...getCurrentDateTime(), ...data })
     },
@@ -156,7 +162,8 @@ export const HomeView: React.FC<HomeProps> = ({
       color: 'bg-pink-50 text-pink-500',
       fields: [
         { name: 'title', label: 'Reminder Title', type: 'text', placeholder: 'e.g. Doctor Appointment' },
-        { name: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high'] }
+        { name: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high'] },
+        { name: 'targetDate', label: 'Target Date', type: 'date' }
       ],
       onSubmit: (data: any) => onAddReminder({ ...getCurrentDateTime(), ...data })
     },
@@ -166,7 +173,8 @@ export const HomeView: React.FC<HomeProps> = ({
       icon: FileText, 
       color: 'bg-slate-50 text-slate-500',
       fields: [
-        { name: 'content', label: 'Note Content', type: 'textarea', placeholder: 'Type your note here...' }
+        { name: 'content', label: 'Note Content', type: 'textarea', placeholder: 'Type your note here...' },
+        { name: 'targetDate', label: 'Target Date', type: 'date' }
       ],
       onSubmit: (data: any) => onAddNote({ ...getCurrentDateTime(), ...data })
     },
