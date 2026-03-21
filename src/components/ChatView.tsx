@@ -65,8 +65,14 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
       if (response) {
         speak(response, language);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        role: 'model',
+        text: `⚠️ Error: ${error.message || "Failed to get response. Please check your internet connection or API key configuration."}`,
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
