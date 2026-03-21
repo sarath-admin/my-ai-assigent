@@ -56,10 +56,16 @@ export const HomeView: React.FC<HomeProps> = ({
   const [isPlusOpen, setIsPlusOpen] = useState(false);
   const [activeService, setActiveService] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
+  const [voiceTargetField, setVoiceTargetField] = useState<string | null>(null);
 
   const handleVoiceResult = React.useCallback((text: string) => {
-    onVoiceMessage(text);
-  }, [onVoiceMessage]);
+    if (voiceTargetField) {
+      setFormData((prev: any) => ({ ...prev, [voiceTargetField]: text }));
+      setVoiceTargetField(null);
+    } else {
+      onVoiceMessage(text);
+    }
+  }, [onVoiceMessage, voiceTargetField]);
 
   const { isListening, startListening, stopListening } = useSpeechRecognition({
     language,
@@ -67,12 +73,23 @@ export const HomeView: React.FC<HomeProps> = ({
   });
 
   const handleVoiceSupport = React.useCallback(() => {
+    setVoiceTargetField(null);
     if (isListening) {
       stopListening();
     } else {
       startListening();
     }
   }, [isListening, startListening, stopListening]);
+
+  const handleFieldVoiceInput = React.useCallback((fieldName: string) => {
+    if (isListening && voiceTargetField === fieldName) {
+      stopListening();
+      setVoiceTargetField(null);
+    } else {
+      setVoiceTargetField(fieldName);
+      startListening();
+    }
+  }, [isListening, voiceTargetField, startListening, stopListening]);
 
   const getCurrentDateTime = React.useCallback(() => {
     const now = new Date();
@@ -346,13 +363,23 @@ export const HomeView: React.FC<HomeProps> = ({
 
                   {currentService.fields.map((field: any) => (
                     <div key={field.name} className="space-y-2">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
-                        {field.label}
-                      </label>
+                      <div className="flex items-center justify-between ml-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          {field.label}
+                        </label>
+                        {field.type !== 'select' && field.type !== 'date' && (
+                          <button 
+                            onClick={() => handleFieldVoiceInput(field.name)}
+                            className={`p-1 rounded-full transition-colors ${isListening && voiceTargetField === field.name ? 'text-red-500 animate-pulse' : 'text-slate-400 hover:text-blue-500'}`}
+                          >
+                            <Mic size={14} />
+                          </button>
+                        )}
+                      </div>
                       {field.type === 'textarea' ? (
                         <textarea
-                          className="w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all min-h-[120px]"
-                          placeholder={field.placeholder}
+                          className={`w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all min-h-[120px] ${isListening && voiceTargetField === field.name ? 'ring-2 ring-blue-500' : ''}`}
+                          placeholder={isListening && voiceTargetField === field.name ? "Listening..." : field.placeholder}
                           value={formData[field.name] || ''}
                           onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
                         />
@@ -370,8 +397,8 @@ export const HomeView: React.FC<HomeProps> = ({
                       ) : (
                         <input
                           type={field.type}
-                          className="w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all"
-                          placeholder={field.placeholder}
+                          className={`w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all ${isListening && voiceTargetField === field.name ? 'ring-2 ring-blue-500' : ''}`}
+                          placeholder={isListening && voiceTargetField === field.name ? "Listening..." : field.placeholder}
                           value={formData[field.name] || ''}
                           onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
                         />

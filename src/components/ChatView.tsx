@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Send, Mic, Sparkles, Globe, BrainCircuit, MicOff } from 'lucide-react';
+import { ArrowLeft, Send, Mic, Sparkles, Globe, BrainCircuit, MicOff, Volume2 } from 'lucide-react';
 import { getChatResponse } from '../services/gemini';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
+import { useTextToSpeech } from '../hooks/useTextToSpeech';
 
 interface Message {
   id: string;
@@ -28,6 +29,8 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasProcessedInitial = useRef(false);
 
+  const { speak, stop: stopTTS } = useTextToSpeech();
+
   const handleSend = useCallback(async (text: string = input) => {
     if (!text.trim() || isLoading) return;
 
@@ -40,6 +43,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    stopTTS();
 
     try {
       const history = messages.map(m => ({
@@ -56,12 +60,17 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      
+      // Automatically speak the AI response
+      if (response) {
+        speak(response, language);
+      }
     } catch (error) {
       console.error(error);
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, modelType, language]);
+  }, [input, isLoading, messages, modelType, language, speak, stopTTS]);
 
   const handleVoiceResult = useCallback((text: string) => {
     setInput(text);
@@ -162,12 +171,20 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
                 animate={{ y: 0, opacity: 1 }}
                 className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`max-w-[85%] p-4 rounded-2xl shadow-sm ${
+                <div className={`max-w-[85%] p-4 rounded-2xl shadow-sm relative group ${
                   m.role === 'user' 
                     ? 'bg-blue-600 text-white rounded-tr-none' 
                     : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
                 }`}>
                   <p className="text-sm leading-relaxed">{m.text}</p>
+                  {m.role === 'model' && (
+                    <button 
+                      onClick={() => speak(m.text, language)}
+                      className="absolute -right-10 top-2 p-2 bg-white rounded-full shadow-sm text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Volume2 size={14} />
+                    </button>
+                  )}
                 </div>
               </motion.div>
             ))}
