@@ -178,12 +178,31 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
                 }`}>
                   <p className="text-sm leading-relaxed">{m.text}</p>
                   {m.role === 'model' && (
-                    <button 
-                      onClick={() => speak(m.text, language)}
-                      className="absolute -right-10 top-2 p-2 bg-white rounded-full shadow-sm text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Volume2 size={14} />
-                    </button>
+                    <div className="absolute -right-12 top-0 flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => speak(m.text, language)}
+                        className="p-2 bg-white rounded-full shadow-sm text-blue-500 hover:bg-blue-50"
+                        title="Replay"
+                      >
+                        <Volume2 size={14} />
+                      </button>
+                      <div className="relative group/lang">
+                        <button className="p-2 bg-white rounded-full shadow-sm text-slate-400 hover:text-blue-500">
+                          <Globe size={14} />
+                        </button>
+                        <div className="absolute left-full ml-2 top-0 bg-white rounded-xl shadow-xl border border-slate-100 p-2 hidden group-hover/lang:grid grid-cols-2 gap-1 z-50 min-w-[160px]">
+                          {languages.map(lang => (
+                            <button
+                              key={lang}
+                              onClick={() => speak(m.text, lang)}
+                              className="text-[10px] font-bold py-1.5 px-2 rounded-lg hover:bg-slate-50 text-slate-600 text-left"
+                            >
+                              {lang}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               </motion.div>

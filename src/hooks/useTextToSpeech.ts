@@ -20,18 +20,36 @@ export const useTextToSpeech = () => {
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = languageMap[language] || 'en-IN';
-    utterance.rate = 1;
+    const targetLang = languageMap[language] || 'en-IN';
+    utterance.lang = targetLang;
+    utterance.rate = 0.9; // Slightly slower for better clarity
     utterance.pitch = 1;
 
-    // Find a suitable voice for the language
-    const voices = window.speechSynthesis.getVoices();
-    const voice = voices.find(v => v.lang.startsWith(utterance.lang.split('-')[0]));
-    if (voice) {
-      utterance.voice = voice;
-    }
+    // Function to set voice and speak
+    const performSpeak = () => {
+      const voices = window.speechSynthesis.getVoices();
+      // Try to find a voice that matches the language exactly, then by prefix
+      let voice = voices.find(v => v.lang === targetLang);
+      if (!voice) {
+        voice = voices.find(v => v.lang.startsWith(targetLang.split('-')[0]));
+      }
+      
+      if (voice) {
+        utterance.voice = voice;
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    };
 
-    window.speechSynthesis.speak(utterance);
+    // If voices aren't loaded yet, wait for them
+    if (window.speechSynthesis.getVoices().length === 0) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        performSpeak();
+        window.speechSynthesis.onvoiceschanged = null;
+      };
+    } else {
+      performSpeak();
+    }
   }, []);
 
   const stop = useCallback(() => {
