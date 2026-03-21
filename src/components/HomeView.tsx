@@ -18,12 +18,15 @@ import {
   Calendar,
   FileText,
   X,
-  Check
+  Check,
+  MicOff
 } from 'lucide-react';
 import { UserProfile, Screen } from '../types';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 
 interface HomeProps {
   profile: UserProfile;
+  language: string;
   onNavigate: (screen: Screen) => void;
   onAddActivity: (data: any) => void;
   onAddExpense: (data: any) => void;
@@ -33,10 +36,12 @@ interface HomeProps {
   onAddBill: (data: any) => void;
   onAddReminder: (data: any) => void;
   onAddNote: (data: any) => void;
+  onVoiceMessage: (msg: string) => void;
 }
 
 export const HomeView: React.FC<HomeProps> = ({ 
   profile, 
+  language,
   onNavigate,
   onAddActivity,
   onAddExpense,
@@ -45,24 +50,37 @@ export const HomeView: React.FC<HomeProps> = ({
   onAddIncome,
   onAddBill,
   onAddReminder,
-  onAddNote
+  onAddNote,
+  onVoiceMessage
 }) => {
   const [isPlusOpen, setIsPlusOpen] = useState(false);
   const [activeService, setActiveService] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
 
-  const handleVoiceSupport = () => {
-    // Simulated voice support activation
-    alert("Voice Support Activated: English, Tamil, Malayalam, and all Indian languages supported.");
-  };
+  const handleVoiceResult = React.useCallback((text: string) => {
+    onVoiceMessage(text);
+  }, [onVoiceMessage]);
 
-  const getCurrentDateTime = () => {
+  const { isListening, startListening, stopListening } = useSpeechRecognition({
+    language,
+    onResult: handleVoiceResult
+  });
+
+  const handleVoiceSupport = React.useCallback(() => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  }, [isListening, startListening, stopListening]);
+
+  const getCurrentDateTime = React.useCallback(() => {
     const now = new Date();
     return {
       date: now.toLocaleDateString(),
       time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-  };
+  }, []);
 
   const quickActions = [
     { 
@@ -223,10 +241,10 @@ export const HomeView: React.FC<HomeProps> = ({
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={handleVoiceSupport}
-          className="w-full bg-emerald-500 text-white p-4 rounded-2xl flex items-center justify-center space-x-3 shadow-lg shadow-emerald-100"
+          className={`w-full p-4 rounded-2xl flex items-center justify-center space-x-3 shadow-lg transition-all ${isListening ? 'bg-red-500 shadow-red-100 animate-pulse' : 'bg-emerald-500 shadow-emerald-100'}`}
         >
-          <Mic size={24} />
-          <span className="font-bold">Voice Support (Multi-Language)</span>
+          {isListening ? <MicOff size={24} /> : <Mic size={24} />}
+          <span className="font-bold">{isListening ? "Listening..." : `Voice Support (${language})`}</span>
         </motion.button>
       </div>
 

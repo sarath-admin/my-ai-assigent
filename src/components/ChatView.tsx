@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Send, Mic, Sparkles, Globe, BrainCircuit } from 'lucide-react';
+import { ArrowLeft, Send, Mic, Sparkles, Globe, BrainCircuit, MicOff } from 'lucide-react';
 import { getChatResponse } from '../services/gemini';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 
 interface Message {
   id: string;
@@ -10,29 +11,24 @@ interface Message {
 }
 
 interface ChatViewProps {
+  language: string;
+  setLanguage: (lang: string) => void;
+  initialMessage: string | null;
   onBack: () => void;
 }
 
 const languages = ['English', 'Tamil', 'Malayalam', 'Hindi', 'Kannada', 'Telugu'];
 
-export const ChatView: React.FC<ChatViewProps> = ({ onBack }) => {
+export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initialMessage, onBack }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [modelType, setModelType] = useState<'gemini' | 'gpt'>('gemini');
-  const [language, setLanguage] = useState('English');
   const [isLangOpen, setIsLangOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasProcessedInitial = useRef(false);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSend = async (text: string = input) => {
+  const handleSend = useCallback(async (text: string = input) => {
     if (!text.trim() || isLoading) return;
 
     const userMessage: Message = {
@@ -65,12 +61,40 @@ export const ChatView: React.FC<ChatViewProps> = ({ onBack }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [input, isLoading, messages, modelType, language]);
 
-  const handleVoiceInput = () => {
-    alert(`Voice input activated for ${language}. Listening...`);
-    // In a real app, we would use Web Speech API here
-  };
+  const handleVoiceResult = useCallback((text: string) => {
+    setInput(text);
+    handleSend(text);
+  }, [handleSend]);
+
+  const { isListening, startListening, stopListening } = useSpeechRecognition({
+    language,
+    onResult: handleVoiceResult
+  });
+
+  useEffect(() => {
+    if (initialMessage && !hasProcessedInitial.current) {
+      hasProcessedInitial.current = true;
+      handleSend(initialMessage);
+    }
+  }, [initialMessage, handleSend]);
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  const toggleVoiceInput = useCallback(() => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  }, [isListening, startListening, stopListening]);
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
@@ -172,15 +196,15 @@ export const ChatView: React.FC<ChatViewProps> = ({ onBack }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={`Type in ${language}...`}
-            className="w-full pl-12 pr-24 py-4 bg-slate-50 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+            placeholder={isListening ? "Listening..." : `Type in ${language}...`}
+            className={`w-full pl-12 pr-24 py-4 bg-slate-50 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all ${isListening ? 'ring-2 ring-blue-500' : ''}`}
           />
           <div className="absolute right-2 flex items-center space-x-2">
             <button 
-              onClick={handleVoiceInput}
-              className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
+              onClick={toggleVoiceInput}
+              className={`p-2 transition-colors ${isListening ? 'text-blue-600 animate-pulse' : 'text-slate-400 hover:text-blue-500'}`}
             >
-              <Mic size={20} />
+              {isListening ? <MicOff size={20} /> : <Mic size={20} />}
             </button>
             <button 
               onClick={() => handleSend()}

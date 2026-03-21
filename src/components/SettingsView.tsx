@@ -1,26 +1,31 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Palette, Moon, Sun, Cloud, Video, Image as ImageIcon, Save } from 'lucide-react';
+import { ArrowLeft, Palette, Moon, Sun, Cloud, Video, Image as ImageIcon, Save, Globe } from 'lucide-react';
 
 interface SettingsViewProps {
   theme: 'light' | 'dark' | 'blue';
+  language: string;
   onboardingVideo: string;
   onboardingImage: string;
   onThemeChange: (theme: 'light' | 'dark' | 'blue') => void;
+  onLanguageChange: (lang: string) => void;
   onUpdateOnboarding: (video: string, image: string) => void;
   onBack: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ 
   theme, 
+  language,
   onboardingVideo, 
   onboardingImage, 
   onThemeChange, 
+  onLanguageChange,
   onUpdateOnboarding,
   onBack 
 }) => {
   const [video, setVideo] = useState(onboardingVideo);
   const [image, setImage] = useState(onboardingImage);
+  const languages = ['English', 'Tamil', 'Malayalam', 'Hindi', 'Kannada', 'Telugu'];
 
   const handleSave = () => {
     onUpdateOnboarding(video, image);
@@ -66,6 +71,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <Cloud className={theme === 'blue' ? 'text-blue-500' : 'text-slate-400'} />
               <span className="text-xs font-bold mt-2">Ocean</span>
             </button>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2 text-slate-400">
+            <Globe size={18} />
+            <h3 className="text-xs font-bold uppercase tracking-wider">Language Settings</h3>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2">
+            {languages.map(lang => (
+              <button
+                key={lang}
+                onClick={() => onLanguageChange(lang)}
+                className={`py-3 px-2 rounded-xl text-[10px] font-bold transition-all border-2 ${language === lang ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-transparent bg-white text-slate-600'}`}
+              >
+                {lang}
+              </button>
+            ))}
           </div>
         </div>
 

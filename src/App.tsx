@@ -10,6 +10,8 @@ import { Screen, AppState, UserProfile } from './types';
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('onboarding');
+  const [language, setLanguage] = useState('English');
+  const [initialChatMessage, setInitialChatMessage] = useState<string | null>(null);
   const [state, setState] = useState<AppState>({
     profile: {
       name: 'Mahmud Saimon',
@@ -110,6 +112,7 @@ export default function App() {
               <motion.div key="home" initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -100, opacity: 0 }} className="h-full w-full">
                 <HomeView 
                   profile={state.profile} 
+                  language={language}
                   onNavigate={setScreen}
                   onAddActivity={addActivity}
                   onAddExpense={addExpense}
@@ -119,13 +122,25 @@ export default function App() {
                   onAddBill={addBill}
                   onAddReminder={addReminder}
                   onAddNote={addNote}
+                  onVoiceMessage={(msg) => {
+                    setInitialChatMessage(msg);
+                    setScreen('chat');
+                  }}
                 />
               </motion.div>
             )}
 
             {screen === 'chat' && (
               <motion.div key="chat" initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }} className="h-full w-full">
-                <ChatView onBack={() => setScreen('home')} />
+                <ChatView 
+                  language={language}
+                  setLanguage={setLanguage}
+                  initialMessage={initialChatMessage}
+                  onBack={() => {
+                    setInitialChatMessage(null);
+                    setScreen('home');
+                  }} 
+                />
               </motion.div>
             )}
 
@@ -139,9 +154,11 @@ export default function App() {
               <motion.div key="settings" initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} className="h-full w-full">
                 <SettingsView 
                   theme={state.theme} 
+                  language={language}
                   onboardingVideo={state.onboardingVideo}
                   onboardingImage={state.onboardingImage}
                   onThemeChange={handleThemeChange} 
+                  onLanguageChange={setLanguage}
                   onUpdateOnboarding={handleUpdateOnboarding}
                   onBack={() => setScreen('home')} 
                 />

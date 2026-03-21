@@ -1,5 +1,5 @@
 {
   "name": "Skinfotech AI Assistant",
   "description": "A professional AI assistant by Skinfotech Solutions for chat, content generation, and business management.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["microphone"]
 }
