@@ -178,30 +178,29 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
                 }`}>
                   <p className="text-sm leading-relaxed">{m.text}</p>
                   {m.role === 'model' && (
-                    <div className="absolute -right-12 top-0 flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="mt-3 flex flex-wrap gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={() => speak(m.text, language)}
-                        className="p-2 bg-white rounded-full shadow-sm text-blue-500 hover:bg-blue-50"
-                        title="Replay"
+                        className="flex items-center space-x-1 px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-bold hover:bg-blue-100 transition-colors"
+                        title="Replay in current language"
                       >
-                        <Volume2 size={14} />
+                        <Volume2 size={10} />
+                        <span>REPLAY</span>
                       </button>
-                      <div className="relative group/lang">
-                        <button className="p-2 bg-white rounded-full shadow-sm text-slate-400 hover:text-blue-500">
-                          <Globe size={14} />
+                      <div className="h-4 w-[1px] bg-slate-100 mx-0.5" />
+                      {languages.map(lang => (
+                        <button
+                          key={lang}
+                          onClick={() => speak(m.text, lang)}
+                          className={`px-2 py-1 rounded-lg text-[9px] font-bold transition-all ${
+                            language === lang 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                          }`}
+                        >
+                          {lang.substring(0, 3).toUpperCase()}
                         </button>
-                        <div className="absolute left-full ml-2 top-0 bg-white rounded-xl shadow-xl border border-slate-100 p-2 hidden group-hover/lang:grid grid-cols-2 gap-1 z-50 min-w-[160px]">
-                          {languages.map(lang => (
-                            <button
-                              key={lang}
-                              onClick={() => speak(m.text, lang)}
-                              className="text-[10px] font-bold py-1.5 px-2 rounded-lg hover:bg-slate-50 text-slate-600 text-left"
-                            >
-                              {lang}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   )}
                 </div>
