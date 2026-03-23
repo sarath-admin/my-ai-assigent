@@ -6,7 +6,7 @@ function getAI() {
   if (!aiInstance) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is missing. If you are on Hostinger, ensure you have set this environment variable in your build settings or .env file.");
+      throw new Error("GEMINI_API_KEY is missing. Please go to the 'Settings' menu (gear icon) in AI Studio and add your Gemini API Key as a secret named 'GEMINI_API_KEY'.");
     }
     aiInstance = new GoogleGenAI({ apiKey });
   }

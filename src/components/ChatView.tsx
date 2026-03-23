@@ -81,10 +81,16 @@ export const ChatView: React.FC<ChatViewProps> = ({ profile, language, setLangua
       }
     } catch (error: any) {
       console.error("Chat Error:", error);
+      let errorText = error.message || "Failed to get response. Please check your internet connection.";
+      
+      if (errorText.includes("GEMINI_API_KEY is missing")) {
+        errorText = "⚠️ Gemini API Key is missing. To connect your key:\n\n1. Click the ⚙️ (Settings) icon in the top-right of AI Studio.\n2. Go to 'Secrets'.\n3. Add a new secret with Name: GEMINI_API_KEY and Value: [Your API Key].\n4. Restart the app.";
+      }
+      
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         role: 'model',
-        text: `⚠️ Error: ${error.message || "Failed to get response. Please check your internet connection or API key configuration."}`,
+        text: errorText,
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
