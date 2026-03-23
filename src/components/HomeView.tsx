@@ -186,6 +186,7 @@ export const HomeView: React.FC<HomeProps> = ({
       color: 'bg-pink-50 text-pink-500',
       fields: [
         { name: 'title', label: 'Reminder Title', type: 'text', placeholder: 'e.g. Doctor Appointment' },
+        { name: 'description', label: 'Description', type: 'text', placeholder: 'e.g. Bring reports' },
         { name: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high'] },
         { name: 'targetDate', label: 'Target Date', type: 'date' }
       ],

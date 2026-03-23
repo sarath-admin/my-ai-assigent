@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Palette, Moon, Sun, Cloud, Video, Image as ImageIcon, Save, Globe } from 'lucide-react';
+import { ArrowLeft, Palette, Moon, Sun, Cloud, Video, Image as ImageIcon, Save, Globe, Bell } from 'lucide-react';
 
 interface SettingsViewProps {
   theme: 'light' | 'dark' | 'blue';
@@ -91,6 +91,41 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2 text-slate-400">
+            <Bell size={18} />
+            <h3 className="text-xs font-bold uppercase tracking-wider">Notifications</h3>
+          </div>
+          
+          <button
+            onClick={() => {
+              if (!("Notification" in window)) {
+                alert("This browser does not support notifications.");
+                return;
+              }
+              Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                  new Notification("Nova Test", {
+                    body: "Notifications are working correctly!",
+                    icon: '/favicon.ico'
+                  });
+                } else {
+                  alert("Notification permission denied. Please enable it in your browser settings.");
+                }
+              });
+            }}
+            className="w-full flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 group hover:bg-blue-50 transition-colors"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                <Bell size={16} />
+              </div>
+              <span className="text-sm font-bold text-slate-700">Test Notification</span>
+            </div>
+            <ArrowLeft className="rotate-180 text-slate-300 group-hover:text-blue-400 transition-colors" size={16} />
+          </button>
         </div>
 
         <div className="space-y-4">

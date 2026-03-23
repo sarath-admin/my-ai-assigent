@@ -58,7 +58,9 @@ export interface Reminder {
   date: string;
   time: string;
   title: string;
+  description: string;
   priority: 'low' | 'medium' | 'high';
+  notified?: boolean;
 }
 
 export interface Note {

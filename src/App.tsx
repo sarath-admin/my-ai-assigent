@@ -10,25 +10,49 @@ import { Screen, AppState, UserProfile } from './types';
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('onboarding');
-  const [language, setLanguage] = useState('English');
-  const [initialChatMessage, setInitialChatMessage] = useState<string | null>(null);
-  const [state, setState] = useState<AppState>({
-    profile: {
-      name: 'Mahmud Saimon',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mahmud'
-    },
-    theme: 'light',
-    onboardingVideo: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-blue-lines-4432-large.mp4',
-    onboardingImage: 'https://picsum.photos/seed/skinfotech-solutions/800/800',
-    activities: [],
-    expenses: [],
-    investments: [],
-    purchases: [],
-    incomes: [],
-    bills: [],
-    reminders: [],
-    notes: []
+  const [state, setState] = useState<AppState>(() => {
+    const savedState = localStorage.getItem('nova_app_state');
+    if (savedState) {
+      try {
+        return JSON.parse(savedState);
+      } catch (e) {
+        console.error('Failed to parse saved state:', e);
+      }
+    }
+    return {
+      profile: {
+        name: 'Mahmud Saimon',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mahmud'
+      },
+      theme: 'light',
+      onboardingVideo: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-blue-lines-4432-large.mp4',
+      onboardingImage: 'https://picsum.photos/seed/skinfotech-solutions/800/800',
+      activities: [],
+      expenses: [],
+      investments: [],
+      purchases: [],
+      incomes: [],
+      bills: [],
+      reminders: [],
+      notes: []
+    };
   });
+
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem('nova_app_language') || 'English';
+  });
+
+  const [initialChatMessage, setInitialChatMessage] = useState<string | null>(null);
+
+  // Save state to localStorage
+  useEffect(() => {
+    localStorage.setItem('nova_app_state', JSON.stringify(state));
+  }, [state]);
+
+  // Save language to localStorage
+  useEffect(() => {
+    localStorage.setItem('nova_app_language', language);
+  }, [language]);
 
   const handleUpdateProfile = (profile: UserProfile) => {
     setState(prev => ({ ...prev, profile }));
@@ -74,7 +98,50 @@ export default function App() {
     setState(prev => ({ ...prev, notes: [{ id: Date.now().toString(), ...data }, ...prev.notes] }));
   };
 
-  // Theme effect
+  // Notification system for reminders
+  useEffect(() => {
+    if (!("Notification" in window)) return;
+
+    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+      Notification.requestPermission();
+    }
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      state.reminders.forEach(reminder => {
+        try {
+          // Combine date and time strings (e.g., "2026-03-23" and "10:30 AM")
+          const [datePart] = reminder.date.split('T'); // Handle ISO strings if any
+          const reminderTime = new Date(`${datePart} ${reminder.time}`);
+          
+          if (isNaN(reminderTime.getTime())) return;
+
+          const diff = now.getTime() - reminderTime.getTime();
+          // Notify if within 1 minute of the time and not already notified
+          if (diff >= 0 && diff < 60000 && !reminder.notified) {
+            if (Notification.permission === "granted") {
+              new Notification("Nova Reminder", {
+                body: `${reminder.title}${reminder.description ? ': ' + reminder.description : ''}`,
+                icon: '/favicon.ico'
+              });
+              
+              setState(prev => ({
+                ...prev,
+                reminders: prev.reminders.map(r => 
+                  r.id === reminder.id ? { ...r, notified: true } : r
+                )
+              }));
+            }
+          }
+        } catch (e) {
+          console.error('Error checking reminder:', e);
+        }
+      });
+    }, 15000); // Check every 15 seconds for better accuracy
+
+    return () => clearInterval(interval);
+  }, [state.reminders]);
+
   useEffect(() => {
     const root = document.documentElement;
     if (state.theme === 'dark') {
