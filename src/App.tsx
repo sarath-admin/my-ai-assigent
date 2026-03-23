@@ -200,6 +200,7 @@ export default function App() {
             {screen === 'chat' && (
               <motion.div key="chat" initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }} className="h-full w-full">
                 <ChatView 
+                  profile={state.profile}
                   language={language}
                   setLanguage={setLanguage}
                   initialMessage={initialChatMessage}

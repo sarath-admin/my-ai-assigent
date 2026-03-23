@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Send, Mic, Sparkles, Globe, BrainCircuit, MicOff, Volume2 } from 'lucide-react';
+import { ArrowLeft, Send, Mic, Sparkles, Globe, BrainCircuit, MicOff, Volume2, Trash2 } from 'lucide-react';
+import { Screen, AppState, UserProfile } from '../types';
 import { getChatResponse } from '../services/gemini';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { useTextToSpeech } from '../hooks/useTextToSpeech';
@@ -12,6 +13,7 @@ interface Message {
 }
 
 interface ChatViewProps {
+  profile: UserProfile;
   language: string;
   setLanguage: (lang: string) => void;
   initialMessage: string | null;
@@ -20,8 +22,11 @@ interface ChatViewProps {
 
 const languages = ['English', 'Tamil', 'Malayalam', 'Hindi', 'Kannada', 'Telugu'];
 
-export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initialMessage, onBack }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+export const ChatView: React.FC<ChatViewProps> = ({ profile, language, setLanguage, initialMessage, onBack }) => {
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const saved = localStorage.getItem('nova_chat_history');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [modelType, setModelType] = useState<'gemini' | 'gpt'>('gemini');
@@ -30,6 +35,11 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
   const hasProcessedInitial = useRef(false);
 
   const { speak, stop: stopTTS } = useTextToSpeech();
+
+  // Save chat history
+  useEffect(() => {
+    localStorage.setItem('nova_chat_history', JSON.stringify(messages));
+  }, [messages]);
 
   const handleSend = useCallback(async (text: string = input) => {
     if (!text.trim() || isLoading) return;
@@ -46,12 +56,17 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
     stopTTS();
 
     try {
-      const history = messages.map(m => ({
+      // Use a timeout to prevent infinite loading
+      const responsePromise = getChatResponse(text, messages.map(m => ({
         role: m.role,
         parts: [{ text: m.text }]
-      }));
+      })), modelType, language, profile.name);
 
-      const response = await getChatResponse(text, history, modelType, language);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Request timed out. Please check your connection.")), 30000)
+      );
+
+      const response = await Promise.race([responsePromise, timeoutPromise]) as string;
       
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -61,12 +76,11 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
 
       setMessages(prev => [...prev, aiMessage]);
       
-      // Automatically speak the AI response
       if (response) {
         speak(response, language);
       }
     } catch (error: any) {
-      console.error(error);
+      console.error("Chat Error:", error);
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         role: 'model',
@@ -76,7 +90,14 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, modelType, language, speak, stopTTS]);
+  }, [input, isLoading, messages, modelType, language, speak, stopTTS, profile.name]);
+
+  const handleClearChat = () => {
+    if (window.confirm("Are you sure you want to clear the chat history?")) {
+      setMessages([]);
+      localStorage.removeItem('nova_chat_history');
+    }
+  };
 
   const handleVoiceResult = useCallback((text: string) => {
     setInput(text);
@@ -87,6 +108,8 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
     language,
     onResult: handleVoiceResult
   });
+
+  const isVoiceSupported = !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
   useEffect(() => {
     if (initialMessage && !hasProcessedInitial.current) {
@@ -128,13 +151,22 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
             </button>
           </div>
         </div>
-        <button 
-          onClick={() => setIsLangOpen(!isLangOpen)}
-          className="p-2 bg-slate-50 rounded-full text-slate-600 flex items-center space-x-1"
-        >
-          <Globe size={18} />
-          <span className="text-[10px] font-bold">{language.substring(0, 3)}</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          <button 
+            onClick={handleClearChat}
+            className="p-2 bg-slate-50 rounded-full text-red-400 hover:text-red-600 transition-colors"
+            title="Clear Chat"
+          >
+            <Trash2 size={18} />
+          </button>
+          <button 
+            onClick={() => setIsLangOpen(!isLangOpen)}
+            className="p-2 bg-slate-50 rounded-full text-slate-600 flex items-center space-x-1"
+          >
+            <Globe size={18} />
+            <span className="text-[10px] font-bold">{language.substring(0, 3)}</span>
+          </button>
+        </div>
       </div>
 
       {/* Language Selector */}
@@ -163,6 +195,12 @@ export const ChatView: React.FC<ChatViewProps> = ({ language, setLanguage, initi
 
       {/* Chat Content */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {!isVoiceSupported && (
+          <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-center space-x-2 text-amber-700 text-[10px] font-medium">
+            <MicOff size={14} />
+            <span>Voice input is not supported in this browser or environment. Please use Google Chrome on HTTPS.</span>
+          </div>
+        )}
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full space-y-4 opacity-50">
             <BrainCircuit size={64} className="text-blue-200" />

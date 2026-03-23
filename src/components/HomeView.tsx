@@ -216,6 +216,13 @@ export const HomeView: React.FC<HomeProps> = ({
     }
   };
 
+  const getGreeting = React.useCallback(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Hey Good Morning!';
+    if (hour < 17) return 'Hey Good Afternoon!';
+    return 'Hey Good Evening!';
+  }, []);
+
   return (
     <div className="flex flex-col h-full bg-slate-50 relative">
       {/* Header */}
@@ -230,7 +237,7 @@ export const HomeView: React.FC<HomeProps> = ({
             </svg>
           </div>
           <div>
-            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Hey Good Morning!</p>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">{getGreeting()}</p>
             <h2 className="text-lg font-display font-bold text-slate-800">{profile.name}</h2>
           </div>
         </div>

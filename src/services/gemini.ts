@@ -17,7 +17,8 @@ export async function getChatResponse(
   message: string, 
   history: { role: 'user' | 'model', parts: { text: string }[] }[] = [],
   modelType: 'gemini' | 'gpt' = 'gemini',
-  language: string = 'English'
+  language: string = 'English',
+  userName: string = 'User'
 ) {
   const ai = getAI();
   try {
@@ -26,6 +27,7 @@ export async function getChatResponse(
       contents: [...history, { role: 'user', parts: [{ text: message }] }],
       config: {
         systemInstruction: `You are Nova, a friendly AI assistant. 
+        The user's name is ${userName}. Address them by name occasionally.
         Currently acting as: ${modelType === 'gpt' ? 'ChatGPT Mode' : 'Gemini AI Mode'}.
         Please respond in: ${language}.
         Your tone is cheerful, professional, and concise. Help with marketing, SEO, blogging, corporate, financial, and product tasks.
