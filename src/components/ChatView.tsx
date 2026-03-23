@@ -149,6 +149,10 @@ export const ChatView: React.FC<ChatViewProps> = ({ profile, language, setLangua
               <BrainCircuit size={10} />
               <span>{modelType === 'gemini' ? 'Gemini AI' : 'ChatGPT'}</span>
             </button>
+            <div className="flex items-center space-x-1">
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Connected</span>
+            </div>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -275,7 +279,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ profile, language, setLangua
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={isListening ? "Listening..." : `Type in ${language}...`}
+            placeholder={isListening ? "Listening..." : `Ask Nova anything in ${language}...`}
             className={`w-full pl-12 pr-24 py-4 bg-slate-50 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all ${isListening ? 'ring-2 ring-blue-500' : ''}`}
           />
           <div className="absolute right-2 flex items-center space-x-2">

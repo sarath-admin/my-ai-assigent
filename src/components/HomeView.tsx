@@ -301,7 +301,10 @@ export const HomeView: React.FC<HomeProps> = ({
             </div>
             <div>
               <h3 className="text-3xl font-display font-bold text-slate-800 leading-tight tracking-tight">Skinfotech AI<br/>Assistant</h3>
-              <p className="text-sm text-slate-400 mt-2 font-medium">Your Personal Digital Companion</p>
+              <div className="flex items-center justify-center space-x-2 mt-2">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <p className="text-sm text-slate-400 font-medium tracking-tight">Ask Gemini AI Support</p>
+              </div>
             </div>
           </div>
         </motion.div>
