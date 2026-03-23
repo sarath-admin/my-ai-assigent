@@ -115,7 +115,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'target', label: 'Target/Goal', type: 'text', placeholder: 'e.g. 5km Run' },
         { name: 'expense', label: 'Expense (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' }
+        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
+        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddActivity({ ...getCurrentDateTime(), ...data })
     },
@@ -127,7 +129,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'description', label: 'Description', type: 'text', placeholder: 'e.g. Lunch' },
         { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' }
+        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
+        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddExpense({ ...getCurrentDateTime(), ...data })
     },
@@ -139,7 +143,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'type', label: 'Investment Type', type: 'text', placeholder: 'e.g. Stocks, Gold' },
         { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' }
+        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
+        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddInvestment({ ...getCurrentDateTime(), ...data })
     },
@@ -151,7 +157,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'items', label: 'Items Purchased', type: 'text', placeholder: 'e.g. Groceries' },
         { name: 'amount', label: 'Total Amount (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' }
+        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
+        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddPurchase({ ...getCurrentDateTime(), ...data })
     },
@@ -163,7 +171,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'source', label: 'Income Source', type: 'text', placeholder: 'e.g. Salary' },
         { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' }
+        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
+        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddIncome({ ...getCurrentDateTime(), ...data })
     },
@@ -175,7 +185,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'name', label: 'Bill Name', type: 'text', placeholder: 'e.g. Electricity' },
         { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' }
+        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
+        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddBill({ ...getCurrentDateTime(), ...data })
     },
@@ -188,7 +200,8 @@ export const HomeView: React.FC<HomeProps> = ({
         { name: 'title', label: 'Reminder Title', type: 'text', placeholder: 'e.g. Doctor Appointment' },
         { name: 'description', label: 'Description', type: 'text', placeholder: 'e.g. Bring reports' },
         { name: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high'] },
-        { name: 'targetDate', label: 'Target Date', type: 'date' }
+        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'time', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddReminder({ ...getCurrentDateTime(), ...data })
     },
@@ -199,7 +212,9 @@ export const HomeView: React.FC<HomeProps> = ({
       color: 'bg-slate-50 text-slate-500',
       fields: [
         { name: 'content', label: 'Note Content', type: 'textarea', placeholder: 'Type your note here...' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' }
+        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
+        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddNote({ ...getCurrentDateTime(), ...data })
     },
@@ -210,6 +225,22 @@ export const HomeView: React.FC<HomeProps> = ({
   const handleFormSubmit = () => {
     if (currentService) {
       currentService.onSubmit(formData);
+
+      // If it's not the reminder service itself, and reminder is enabled
+      if (currentService.id !== 'reminder' && formData.enableReminder && formData.reminderTime) {
+        const title = formData.target || formData.description || formData.type || formData.items || formData.source || formData.name || formData.content?.substring(0, 20) || 'New Entry';
+        
+        onAddReminder({
+          ...getCurrentDateTime(),
+          title: `${currentService.name}: ${title}`,
+          description: `Auto-generated reminder for ${currentService.name}`,
+          priority: 'medium',
+          targetDate: formData.targetDate || new Date().toISOString().split('T')[0],
+          time: formData.reminderTime,
+          notified: false
+        });
+      }
+
       setActiveService(null);
       setFormData({});
       setIsPlusOpen(false);
@@ -376,50 +407,65 @@ export const HomeView: React.FC<HomeProps> = ({
                     <span>{getCurrentDateTime().date} • {getCurrentDateTime().time}</span>
                   </div>
 
-                  {currentService.fields.map((field: any) => (
-                    <div key={field.name} className="space-y-2">
-                      <div className="flex items-center justify-between ml-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                          {field.label}
-                        </label>
-                        {field.type !== 'select' && (
-                          <button 
-                            onClick={() => handleFieldVoiceInput(field.name)}
-                            className={`p-1 rounded-full transition-colors ${isListening && voiceTargetField === field.name ? 'text-red-500 animate-pulse' : 'text-slate-400 hover:text-blue-500'}`}
+                  {currentService.fields.map((field: any) => {
+                    // Conditional rendering for reminder time
+                    if (field.name === 'reminderTime' && !formData.enableReminder) return null;
+
+                    return (
+                      <div key={field.name} className="space-y-2">
+                        <div className="flex items-center justify-between ml-1">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            {field.label}
+                          </label>
+                          {field.type !== 'select' && field.type !== 'checkbox' && (
+                            <button 
+                              onClick={() => handleFieldVoiceInput(field.name)}
+                              className={`p-1 rounded-full transition-colors ${isListening && voiceTargetField === field.name ? 'text-red-500 animate-pulse' : 'text-slate-400 hover:text-blue-500'}`}
+                            >
+                              <Mic size={14} />
+                            </button>
+                          )}
+                        </div>
+                        {field.type === 'textarea' ? (
+                          <textarea
+                            className={`w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all min-h-[120px] ${isListening && voiceTargetField === field.name ? 'ring-2 ring-blue-500' : ''}`}
+                            placeholder={isListening && voiceTargetField === field.name ? "Listening..." : field.placeholder}
+                            value={formData[field.name] || ''}
+                            onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                          />
+                        ) : field.type === 'select' ? (
+                          <select
+                            className="w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
+                            value={formData[field.name] || ''}
+                            onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
                           >
-                            <Mic size={14} />
-                          </button>
+                            <option value="">Select Priority</option>
+                            {field.options.map((opt: string) => (
+                              <option key={opt} value={opt}>{opt.toUpperCase()}</option>
+                            ))}
+                          </select>
+                        ) : field.type === 'checkbox' ? (
+                          <div className="flex items-center space-x-3 p-2">
+                            <input
+                              type="checkbox"
+                              className="w-6 h-6 rounded-lg border-slate-200 text-blue-600 focus:ring-blue-500"
+                              checked={formData[field.name] || false}
+                              onChange={(e) => setFormData({ ...formData, [field.name]: e.target.checked })}
+                            />
+                            <span className="text-sm font-medium text-slate-600">{field.label}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type={field.type}
+                            className={`w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all ${isListening && voiceTargetField === field.name ? 'ring-2 ring-blue-500' : ''}`}
+                            placeholder={isListening && voiceTargetField === field.name ? "Listening..." : field.placeholder}
+                            value={formData[field.name] || ''}
+                            onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                          />
                         )}
                       </div>
-                      {field.type === 'textarea' ? (
-                        <textarea
-                          className={`w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all min-h-[120px] ${isListening && voiceTargetField === field.name ? 'ring-2 ring-blue-500' : ''}`}
-                          placeholder={isListening && voiceTargetField === field.name ? "Listening..." : field.placeholder}
-                          value={formData[field.name] || ''}
-                          onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                        />
-                      ) : field.type === 'select' ? (
-                        <select
-                          className="w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
-                          value={formData[field.name] || ''}
-                          onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                        >
-                          <option value="">Select Priority</option>
-                          {field.options.map((opt: string) => (
-                            <option key={opt} value={opt}>{opt.toUpperCase()}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          type={field.type}
-                          className={`w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all ${isListening && voiceTargetField === field.name ? 'ring-2 ring-blue-500' : ''}`}
-                          placeholder={isListening && voiceTargetField === field.name ? "Listening..." : field.placeholder}
-                          value={formData[field.name] || ''}
-                          onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                        />
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
 
                   <button
                     onClick={handleFormSubmit}
