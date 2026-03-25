@@ -5,6 +5,8 @@ import { ArrowLeft, Palette, Moon, Sun, Cloud, Video, Image as ImageIcon, Save, 
 interface SettingsViewProps {
   theme: 'light' | 'dark' | 'blue';
   language: string;
+  isAudioEnabled: boolean;
+  onEnableAudio: () => void;
   onboardingVideo: string;
   onboardingImage: string;
   onThemeChange: (theme: 'light' | 'dark' | 'blue') => void;
@@ -16,6 +18,8 @@ interface SettingsViewProps {
 export const SettingsView: React.FC<SettingsViewProps> = ({ 
   theme, 
   language,
+  isAudioEnabled,
+  onEnableAudio,
   onboardingVideo, 
   onboardingImage, 
   onThemeChange, 
@@ -123,6 +127,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <Bell size={16} />
               </div>
               <span className="text-sm font-bold text-slate-700">Test Notification</span>
+            </div>
+            <ArrowLeft className="rotate-180 text-slate-300 group-hover:text-blue-400 transition-colors" size={16} />
+          </button>
+
+          <button
+            onClick={onEnableAudio}
+            className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-colors group ${isAudioEnabled ? 'bg-green-50 border-green-100' : 'bg-white border-slate-100 hover:bg-blue-50'}`}
+          >
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 rounded-lg ${isAudioEnabled ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                <Bell size={16} className={!isAudioEnabled ? 'animate-pulse' : ''} />
+              </div>
+              <div className="text-left">
+                <span className="text-sm font-bold text-slate-700 block">Test & Enable Alarm</span>
+                <span className="text-[10px] text-slate-400 block">{isAudioEnabled ? 'Audio context is active' : 'Click to unlock audio for mobile'}</span>
+              </div>
             </div>
             <ArrowLeft className="rotate-180 text-slate-300 group-hover:text-blue-400 transition-colors" size={16} />
           </button>

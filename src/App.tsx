@@ -13,6 +13,7 @@ import { useTextToSpeech } from './hooks/useTextToSpeech';
 export default function App() {
   const [screen, setScreen] = useState<Screen>('onboarding');
   const [activeReminder, setActiveReminder] = useState<Reminder | null>(null);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
   const { speak, stop: stopTTS } = useTextToSpeech();
   const [state, setState] = useState<AppState>(() => {
@@ -129,8 +130,9 @@ export default function App() {
       const newReminders = state.reminders.map(reminder => {
         if (reminder.notified) return reminder;
 
-        // Check if date and time match
-        if (reminder.date === nowStr && reminder.time === nowTime) {
+        // Check if date matches and current time is >= reminder time
+        // This is more robust than checking for an exact minute match
+        if (reminder.date === nowStr && nowTime >= reminder.time) {
           // Trigger Notification
           if (Notification.permission === "granted") {
             new Notification("Nova Reminder", {
@@ -141,7 +143,7 @@ export default function App() {
 
           // Trigger Alarm and Modal
           setActiveReminder(reminder);
-          if (alarmAudioRef.current) {
+          if (alarmAudioRef.current && isAudioEnabled) {
             alarmAudioRef.current.play().catch(e => console.error('Alarm failed:', e));
           }
 
@@ -179,6 +181,24 @@ export default function App() {
     stopTTS();
     setActiveReminder(null);
   }, [stopTTS]);
+
+  const handleEnableAudio = useCallback(() => {
+    // Request notification permission
+    if ("Notification" in window) {
+      Notification.requestPermission();
+    }
+
+    // Play a silent sound to 'unlock' the audio context for mobile browsers
+    if (alarmAudioRef.current) {
+      alarmAudioRef.current.play().then(() => {
+        alarmAudioRef.current?.pause();
+        if (alarmAudioRef.current) alarmAudioRef.current.currentTime = 0;
+        setIsAudioEnabled(true);
+      }).catch(e => {
+        console.error('Failed to unlock audio:', e);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -218,6 +238,8 @@ export default function App() {
                 <HomeView 
                   profile={state.profile} 
                   language={language}
+                  isAudioEnabled={isAudioEnabled}
+                  onEnableAudio={handleEnableAudio}
                   onNavigate={setScreen}
                   onAddActivity={addActivity}
                   onAddExpense={addExpense}
@@ -261,6 +283,8 @@ export default function App() {
                 <SettingsView 
                   theme={state.theme} 
                   language={language}
+                  isAudioEnabled={isAudioEnabled}
+                  onEnableAudio={handleEnableAudio}
                   onboardingVideo={state.onboardingVideo}
                   onboardingImage={state.onboardingImage}
                   onThemeChange={handleThemeChange} 

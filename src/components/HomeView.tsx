@@ -27,6 +27,8 @@ import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 interface HomeProps {
   profile: UserProfile;
   language: string;
+  isAudioEnabled: boolean;
+  onEnableAudio: () => void;
   onNavigate: (screen: Screen) => void;
   onAddActivity: (data: any) => void;
   onAddExpense: (data: any) => void;
@@ -42,6 +44,8 @@ interface HomeProps {
 export const HomeView: React.FC<HomeProps> = ({ 
   profile, 
   language,
+  isAudioEnabled,
+  onEnableAudio,
   onNavigate,
   onAddActivity,
   onAddExpense,
@@ -256,6 +260,26 @@ export const HomeView: React.FC<HomeProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-slate-50 relative">
+      {/* Audio/Notification Permission Banner for Mobile */}
+      {!isAudioEnabled && (
+        <motion.div 
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          className="bg-blue-600 px-6 py-3 flex items-center justify-between text-white"
+        >
+          <div className="flex items-center space-x-2">
+            <Bell size={16} className="animate-bounce" />
+            <p className="text-[10px] font-bold uppercase tracking-wider">Enable Alarm & Audio for Mobile</p>
+          </div>
+          <button 
+            onClick={onEnableAudio}
+            className="bg-white text-blue-600 px-3 py-1 rounded-lg text-[10px] font-bold shadow-sm active:scale-95 transition-transform"
+          >
+            ENABLE NOW
+          </button>
+        </motion.div>
+      )}
+
       {/* Header */}
       <div className="p-6 flex items-center justify-between">
         <div className="flex items-center space-x-3">
