@@ -16,6 +16,7 @@ const languageMap: Record<string, string> = {
 
 export const useSpeechRecognition = ({ onResult, language = 'English' }: UseSpeechRecognitionProps) => {
   const [isListening, setIsListening] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [recognition, setRecognition] = useState<any>(null);
   const onResultRef = useRef(onResult);
 
@@ -49,7 +50,11 @@ export const useSpeechRecognition = ({ onResult, language = 'English' }: UseSpee
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
         if (event.error === 'not-allowed') {
-          alert('Microphone access is blocked. Please enable it in your browser settings.');
+          setError('Microphone access is blocked. Please enable it in your browser settings and ensure you are using HTTPS.');
+        } else if (event.error === 'no-speech') {
+          setError('No speech was detected. Please try again.');
+        } else {
+          setError(`Speech recognition error: ${event.error}`);
         }
       };
 
@@ -58,9 +63,10 @@ export const useSpeechRecognition = ({ onResult, language = 'English' }: UseSpee
   }, [language]); // Only re-initialize when language changes
 
   const startListening = useCallback(async () => {
+    setError(null);
     // Check for secure context (HTTPS) which is required for Speech Recognition
     if (!window.isSecureContext && window.location.hostname !== 'localhost') {
-      alert('Voice support requires a secure connection (HTTPS). Please ensure your Hostinger site has an SSL certificate enabled.');
+      setError('Voice support requires a secure connection (HTTPS).');
       return;
     }
 
@@ -68,29 +74,31 @@ export const useSpeechRecognition = ({ onResult, language = 'English' }: UseSpee
       try {
         // Explicitly request microphone permission first to ensure prompt appears
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          await navigator.mediaDevices.getUserMedia({ audio: true });
+          try {
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+          } catch (permError: any) {
+            console.warn('getUserMedia failed, but will try recognition.start() anyway:', permError);
+            if (permError.name === 'NotAllowedError' || permError.name === 'PermissionDeniedError') {
+              setError('Microphone access denied. Please allow microphone access in your browser settings.');
+              return;
+            }
+          }
         }
         recognition.start();
       } catch (error: any) {
         console.error('Failed to start recognition:', error);
-        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-          alert('Microphone access is blocked. Please enable it in your browser settings and ensure you are using HTTPS.');
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError' || error.message?.includes('denied')) {
+          setError('Microphone access is blocked. Please enable it in your browser settings.');
         } else {
-          // If getUserMedia fails but it's not a permission error, try starting recognition anyway
-          try {
-            recognition.start();
-          } catch (e) {
-            console.error('Final attempt to start recognition failed:', e);
-            alert('Could not start voice recognition. Please check your microphone and ensure you are using a supported browser like Chrome on HTTPS.');
-          }
+          setError('Could not start voice recognition. Please check your microphone.');
         }
       }
     } else {
       const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
       if (!isChrome) {
-        alert('Speech recognition is best supported in Google Chrome. Please try using Chrome.');
+        setError('Speech recognition is best supported in Google Chrome.');
       } else {
-        alert('Speech recognition is not supported in this browser or environment. Ensure you are using HTTPS.');
+        setError('Speech recognition is not supported in this environment.');
       }
     }
   }, [recognition]);
@@ -101,5 +109,5 @@ export const useSpeechRecognition = ({ onResult, language = 'English' }: UseSpee
     }
   }, [recognition]);
 
-  return { isListening, startListening, stopListening };
+  return { isListening, error, startListening, stopListening, setError };
 };

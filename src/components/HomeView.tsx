@@ -101,8 +101,8 @@ export const HomeView: React.FC<HomeProps> = ({
   const getCurrentDateTime = React.useCallback(() => {
     const now = new Date();
     return {
-      date: now.toLocaleDateString(),
-      time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      date: now.toISOString().split('T')[0], // YYYY-MM-DD
+      time: now.toTimeString().split(' ')[0].substring(0, 5) // HH:mm
     };
   }, []);
 
@@ -115,9 +115,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'target', label: 'Target/Goal', type: 'text', placeholder: 'e.g. 5km Run' },
         { name: 'expense', label: 'Expense (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'date', label: 'Target Date', type: 'date' },
         { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
-        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
+        { name: 'time', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddActivity({ ...getCurrentDateTime(), ...data })
     },
@@ -129,9 +129,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'description', label: 'Description', type: 'text', placeholder: 'e.g. Lunch' },
         { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'date', label: 'Target Date', type: 'date' },
         { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
-        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
+        { name: 'time', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddExpense({ ...getCurrentDateTime(), ...data })
     },
@@ -143,9 +143,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'type', label: 'Investment Type', type: 'text', placeholder: 'e.g. Stocks, Gold' },
         { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'date', label: 'Target Date', type: 'date' },
         { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
-        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
+        { name: 'time', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddInvestment({ ...getCurrentDateTime(), ...data })
     },
@@ -157,9 +157,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'items', label: 'Items Purchased', type: 'text', placeholder: 'e.g. Groceries' },
         { name: 'amount', label: 'Total Amount (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'date', label: 'Target Date', type: 'date' },
         { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
-        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
+        { name: 'time', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddPurchase({ ...getCurrentDateTime(), ...data })
     },
@@ -171,9 +171,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'source', label: 'Income Source', type: 'text', placeholder: 'e.g. Salary' },
         { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'date', label: 'Target Date', type: 'date' },
         { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
-        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
+        { name: 'time', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddIncome({ ...getCurrentDateTime(), ...data })
     },
@@ -185,9 +185,9 @@ export const HomeView: React.FC<HomeProps> = ({
       fields: [
         { name: 'name', label: 'Bill Name', type: 'text', placeholder: 'e.g. Electricity' },
         { name: 'amount', label: 'Amount (₹)', type: 'number', placeholder: '0' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'date', label: 'Target Date', type: 'date' },
         { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
-        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
+        { name: 'time', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddBill({ ...getCurrentDateTime(), ...data })
     },
@@ -200,7 +200,7 @@ export const HomeView: React.FC<HomeProps> = ({
         { name: 'title', label: 'Reminder Title', type: 'text', placeholder: 'e.g. Doctor Appointment' },
         { name: 'description', label: 'Description', type: 'text', placeholder: 'e.g. Bring reports' },
         { name: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high'] },
-        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'date', label: 'Target Date', type: 'date' },
         { name: 'time', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddReminder({ ...getCurrentDateTime(), ...data })
@@ -212,9 +212,9 @@ export const HomeView: React.FC<HomeProps> = ({
       color: 'bg-slate-50 text-slate-500',
       fields: [
         { name: 'content', label: 'Note Content', type: 'textarea', placeholder: 'Type your note here...' },
-        { name: 'targetDate', label: 'Target Date', type: 'date' },
+        { name: 'date', label: 'Target Date', type: 'date' },
         { name: 'enableReminder', label: 'Set Reminder?', type: 'checkbox' },
-        { name: 'reminderTime', label: 'Reminder Time', type: 'time' }
+        { name: 'time', label: 'Reminder Time', type: 'time' }
       ],
       onSubmit: (data: any) => onAddNote({ ...getCurrentDateTime(), ...data })
     },
@@ -227,7 +227,7 @@ export const HomeView: React.FC<HomeProps> = ({
       currentService.onSubmit(formData);
 
       // If it's not the reminder service itself, and reminder is enabled
-      if (currentService.id !== 'reminder' && formData.enableReminder && formData.reminderTime) {
+      if (currentService.id !== 'reminder' && formData.enableReminder && formData.time) {
         const title = formData.target || formData.description || formData.type || formData.items || formData.source || formData.name || formData.content?.substring(0, 20) || 'New Entry';
         
         onAddReminder({
@@ -235,8 +235,8 @@ export const HomeView: React.FC<HomeProps> = ({
           title: `${currentService.name}: ${title}`,
           description: `Auto-generated reminder for ${currentService.name}`,
           priority: 'medium',
-          targetDate: formData.targetDate || new Date().toISOString().split('T')[0],
-          time: formData.reminderTime,
+          date: formData.date || new Date().toISOString().split('T')[0],
+          time: formData.time,
           notified: false
         });
       }
@@ -412,7 +412,7 @@ export const HomeView: React.FC<HomeProps> = ({
 
                   {currentService.fields.map((field: any) => {
                     // Conditional rendering for reminder time
-                    if (field.name === 'reminderTime' && !formData.enableReminder) return null;
+                    if (field.name === 'time' && currentService.id !== 'reminder' && !formData.enableReminder) return null;
 
                     return (
                       <div key={field.name} className="space-y-2">

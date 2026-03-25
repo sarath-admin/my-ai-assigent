@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Onboarding } from './components/Onboarding';
 import { HomeView } from './components/HomeView';
@@ -6,10 +6,15 @@ import { ChatView } from './components/ChatView';
 import { ProfileView } from './components/ProfileView';
 import { SettingsView } from './components/SettingsView';
 import { HistoryView } from './components/HistoryView';
-import { Screen, AppState, UserProfile } from './types';
+import { ReminderAlert } from './components/ReminderAlert';
+import { Screen, AppState, UserProfile, Reminder } from './types';
+import { useTextToSpeech } from './hooks/useTextToSpeech';
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('onboarding');
+  const [activeReminder, setActiveReminder] = useState<Reminder | null>(null);
+  const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
+  const { speak, stop: stopTTS } = useTextToSpeech();
   const [state, setState] = useState<AppState>(() => {
     const savedState = localStorage.getItem('nova_app_state');
     if (savedState) {
@@ -100,47 +105,80 @@ export default function App() {
 
   // Notification system for reminders
   useEffect(() => {
+    // Setup alarm audio
+    if (!alarmAudioRef.current) {
+      // Simple beep base64
+      const beepBase64 = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YV9vT18A";
+      // Actually, let's use a more pleasant alarm sound URL
+      alarmAudioRef.current = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+      alarmAudioRef.current.loop = true;
+    }
+
     if (!("Notification" in window)) return;
 
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
       Notification.requestPermission();
     }
 
-    const interval = setInterval(() => {
+    const checkReminders = () => {
       const now = new Date();
-      state.reminders.forEach(reminder => {
-        try {
-          // Combine date and time strings (e.g., "2026-03-23" and "10:30 AM")
-          const [datePart] = reminder.date.split('T'); // Handle ISO strings if any
-          const reminderTime = new Date(`${datePart} ${reminder.time}`);
-          
-          if (isNaN(reminderTime.getTime())) return;
+      const nowStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+      const nowTime = now.toTimeString().split(' ')[0].substring(0, 5); // HH:mm
 
-          const diff = now.getTime() - reminderTime.getTime();
-          // Notify if within 1 minute of the time and not already notified
-          if (diff >= 0 && diff < 60000 && !reminder.notified) {
-            if (Notification.permission === "granted") {
-              new Notification("Nova Reminder", {
-                body: `${reminder.title}${reminder.description ? ': ' + reminder.description : ''}`,
-                icon: '/favicon.ico'
-              });
-              
-              setState(prev => ({
-                ...prev,
-                reminders: prev.reminders.map(r => 
-                  r.id === reminder.id ? { ...r, notified: true } : r
-                )
-              }));
-            }
+      let updated = false;
+      const newReminders = state.reminders.map(reminder => {
+        if (reminder.notified) return reminder;
+
+        // Check if date and time match
+        if (reminder.date === nowStr && reminder.time === nowTime) {
+          // Trigger Notification
+          if (Notification.permission === "granted") {
+            new Notification("Nova Reminder", {
+              body: `${reminder.title}${reminder.description ? ': ' + reminder.description : ''}`,
+              icon: '/favicon.ico'
+            });
           }
-        } catch (e) {
-          console.error('Error checking reminder:', e);
-        }
-      });
-    }, 15000); // Check every 15 seconds for better accuracy
 
+          // Trigger Alarm and Modal
+          setActiveReminder(reminder);
+          if (alarmAudioRef.current) {
+            alarmAudioRef.current.play().catch(e => console.error('Alarm failed:', e));
+          }
+
+          updated = true;
+          return { ...reminder, notified: true };
+        }
+        return reminder;
+      });
+
+      if (updated) {
+        setState(prev => ({ ...prev, reminders: newReminders }));
+      }
+    };
+
+    const interval = setInterval(checkReminders, 10000); // Check every 10 seconds
     return () => clearInterval(interval);
   }, [state.reminders]);
+
+  const handleStopAlarm = useCallback(() => {
+    if (alarmAudioRef.current) {
+      alarmAudioRef.current.pause();
+      alarmAudioRef.current.currentTime = 0;
+    }
+    if (activeReminder) {
+      const text = `Hey ${state.profile.name}, here is your reminder: ${activeReminder.title}. ${activeReminder.description || ''}`;
+      speak(text, language);
+    }
+  }, [activeReminder, state.profile.name, language, speak]);
+
+  const handleCloseReminder = useCallback(() => {
+    if (alarmAudioRef.current) {
+      alarmAudioRef.current.pause();
+      alarmAudioRef.current.currentTime = 0;
+    }
+    stopTTS();
+    setActiveReminder(null);
+  }, [stopTTS]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -240,6 +278,12 @@ export default function App() {
             )}
           </AnimatePresence>
         </div>
+
+        <ReminderAlert 
+          reminder={activeReminder}
+          onClose={handleCloseReminder}
+          onStopAlarm={handleStopAlarm}
+        />
 
         {/* Home Indicator */}
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-slate-200 rounded-full z-50" />

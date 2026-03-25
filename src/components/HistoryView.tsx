@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Clock, TrendingUp, ShoppingBag, Target, Wallet, Receipt, Calendar, FileText, X } from 'lucide-react';
+import { ArrowLeft, Clock, TrendingUp, ShoppingBag, Target, Wallet, Receipt, Calendar, FileText, X, Search, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AppState } from '../types';
 
@@ -11,6 +11,14 @@ interface HistoryViewProps {
 
 export const HistoryView: React.FC<HistoryViewProps> = ({ state, onBack }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Filter States
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [minAmount, setMinAmount] = useState('');
+  const [maxAmount, setMaxAmount] = useState('');
 
   const chartData = useMemo(() => {
     const data = [
@@ -41,11 +49,47 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ state, onBack }) => {
       }
     });
 
+    let filteredHistory = history;
+
+    // 1. Category Filter
     if (selectedCategory) {
-      return history.filter(item => item.type === selectedCategory);
+      filteredHistory = filteredHistory.filter(item => item.type === selectedCategory);
     }
-    return history;
-  }, [state, selectedCategory]);
+
+    // 2. Search Query Filter (Title, Content, Type)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filteredHistory = filteredHistory.filter(item => 
+        (item.title?.toLowerCase().includes(q)) || 
+        (item.content?.toLowerCase().includes(q)) ||
+        (item.type.toLowerCase().includes(q))
+      );
+    }
+
+    // 3. Date Range Filter
+    if (startDate) {
+      filteredHistory = filteredHistory.filter(item => item.date >= startDate);
+    }
+    if (endDate) {
+      filteredHistory = filteredHistory.filter(item => item.date <= endDate);
+    }
+
+    // 4. Amount Range Filter
+    if (minAmount) {
+      filteredHistory = filteredHistory.filter(item => {
+        const amt = Number(item.amount || item.expense || 0);
+        return amt >= Number(minAmount);
+      });
+    }
+    if (maxAmount) {
+      filteredHistory = filteredHistory.filter(item => {
+        const amt = Number(item.amount || item.expense || 0);
+        return amt <= Number(maxAmount);
+      });
+    }
+
+    return filteredHistory;
+  }, [state, selectedCategory, searchQuery, startDate, endDate, minAmount, maxAmount]);
 
   const handleBarClick = (data: any) => {
     if (data && data.type) {
@@ -64,6 +108,111 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ state, onBack }) => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {/* Search and Filters */}
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input 
+              type="text"
+              placeholder="Search history..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className="w-full px-4 py-3 flex items-center justify-between text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              <div className="flex items-center space-x-2">
+                <Filter size={16} className="text-blue-500" />
+                <span>Advanced Filters</span>
+                {(startDate || endDate || minAmount || maxAmount) && (
+                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                )}
+              </div>
+              {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="px-4 pb-4 space-y-4"
+                >
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">Start Date</label>
+                      <input 
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full p-2 bg-slate-50 border border-slate-100 rounded-xl text-xs focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">End Date</label>
+                      <input 
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="w-full p-2 bg-slate-50 border border-slate-100 rounded-xl text-xs focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">Min Amount</label>
+                      <input 
+                        type="number"
+                        placeholder="₹ Min"
+                        value={minAmount}
+                        onChange={(e) => setMinAmount(e.target.value)}
+                        className="w-full p-2 bg-slate-50 border border-slate-100 rounded-xl text-xs focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">Max Amount</label>
+                      <input 
+                        type="number"
+                        placeholder="₹ Max"
+                        value={maxAmount}
+                        onChange={(e) => setMaxAmount(e.target.value)}
+                        className="w-full p-2 bg-slate-50 border border-slate-100 rounded-xl text-xs focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      setStartDate('');
+                      setEndDate('');
+                      setMinAmount('');
+                      setMaxAmount('');
+                    }}
+                    className="w-full py-2 text-[10px] font-bold text-red-500 bg-red-50 rounded-xl hover:bg-red-100 transition-colors"
+                  >
+                    Reset Filters
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
         {/* Chart Section */}
         {chartData.length > 0 && (
           <motion.div 

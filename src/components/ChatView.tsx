@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Send, Mic, Sparkles, Globe, BrainCircuit, MicOff, Volume2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Send, Mic, Sparkles, Globe, BrainCircuit, MicOff, Volume2, Trash2, X } from 'lucide-react';
 import { Screen, AppState, UserProfile } from '../types';
 import { getChatResponse } from '../services/gemini';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
@@ -110,7 +110,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ profile, language, setLangua
     handleSend(text);
   }, [handleSend]);
 
-  const { isListening, startListening, stopListening } = useSpeechRecognition({
+  const { isListening, error: voiceError, startListening, stopListening, setError: setVoiceError } = useSpeechRecognition({
     language,
     onResult: handleVoiceResult
   });
@@ -211,6 +211,23 @@ export const ChatView: React.FC<ChatViewProps> = ({ profile, language, setLangua
             <span>Voice input is not supported in this browser or environment. Please use Google Chrome on HTTPS.</span>
           </div>
         )}
+        
+        {voiceError && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center justify-between text-red-700 text-[10px] font-medium"
+          >
+            <div className="flex items-center space-x-2">
+              <MicOff size={14} />
+              <span>{voiceError}</span>
+            </div>
+            <button onClick={() => setVoiceError(null)} className="p-1 hover:bg-red-100 rounded-lg">
+              <X size={12} />
+            </button>
+          </motion.div>
+        )}
+
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full space-y-4 opacity-50">
             <BrainCircuit size={64} className="text-blue-200" />
