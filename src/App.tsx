@@ -104,17 +104,26 @@ export default function App() {
     setState(prev => ({ ...prev, notes: [{ id: Date.now().toString(), ...data }, ...prev.notes] }));
   };
 
+  // Initialize alarm audio on mount
+  useEffect(() => {
+    if (!alarmAudioRef.current) {
+      const audio = new Audio();
+      audio.src = 'https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3';
+      audio.loop = true;
+      audio.preload = 'auto';
+      alarmAudioRef.current = audio;
+      
+      // Handle loading errors
+      audio.onerror = () => {
+        console.warn('Primary alarm sound failed to load, using fallback beep.');
+        // Fallback to a simple beep if the URL fails
+        audio.src = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YV9vT18A";
+      };
+    }
+  }, []);
+
   // Notification system for reminders
   useEffect(() => {
-    // Setup alarm audio
-    if (!alarmAudioRef.current) {
-      // Simple beep base64
-      const beepBase64 = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YV9vT18A";
-      // Actually, let's use a more pleasant alarm sound URL
-      alarmAudioRef.current = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
-      alarmAudioRef.current.loop = true;
-    }
-
     if (!("Notification" in window)) return;
 
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
