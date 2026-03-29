@@ -71,7 +71,7 @@ export const HomeView: React.FC<HomeProps> = ({
     }
   }, [onVoiceMessage, voiceTargetField]);
 
-  const { isListening, startListening, stopListening } = useSpeechRecognition({
+  const { isListening, error: speechError, startListening, stopListening, setError: setSpeechError } = useSpeechRecognition({
     language,
     onResult: handleVoiceResult
   });
@@ -336,13 +336,31 @@ export const HomeView: React.FC<HomeProps> = ({
 
       {/* Voice Support Button */}
       <div className="px-6 pb-6">
+        <AnimatePresence>
+          {speechError && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="bg-red-50 border border-red-100 p-3 rounded-xl mb-3 flex items-center justify-between"
+            >
+              <div className="flex items-center space-x-2 text-red-600">
+                <Bell size={14} />
+                <p className="text-[10px] font-bold">{speechError}</p>
+              </div>
+              <button onClick={() => setSpeechError(null)} className="text-red-400">
+                <X size={14} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={handleVoiceSupport}
           className={`w-full p-4 rounded-2xl flex items-center justify-center space-x-3 shadow-lg transition-all ${isListening ? 'bg-red-500 shadow-red-100 animate-pulse' : 'bg-emerald-500 shadow-emerald-100'}`}
         >
           {isListening ? <MicOff size={24} /> : <Mic size={24} />}
-          <span className="font-bold">{isListening ? "Listening..." : `Voice Support (${language})`}</span>
+          <span className="font-bold text-white">{isListening ? "Listening..." : `Voice Support (${language})`}</span>
         </motion.button>
       </div>
 

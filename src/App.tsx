@@ -158,9 +158,9 @@ export default function App() {
       }
     };
 
-    const interval = setInterval(checkReminders, 10000); // Check every 10 seconds
+    const interval = setInterval(checkReminders, 5000); // Check every 5 seconds for better accuracy
     return () => clearInterval(interval);
-  }, [state.reminders]);
+  }, [state.reminders, isAudioEnabled]);
 
   const handleStopAlarm = useCallback(() => {
     if (alarmAudioRef.current) {
@@ -172,6 +172,11 @@ export default function App() {
       speak(text, language);
     }
   }, [activeReminder, state.profile.name, language, speak]);
+
+  const handleTestVoice = useCallback(() => {
+    const text = `Hello ${state.profile.name}, this is Nova. Your voice assistant is working correctly in ${language}.`;
+    speak(text, language);
+  }, [state.profile.name, language, speak]);
 
   const handleCloseReminder = useCallback(() => {
     if (alarmAudioRef.current) {
@@ -285,6 +290,7 @@ export default function App() {
                   language={language}
                   isAudioEnabled={isAudioEnabled}
                   onEnableAudio={handleEnableAudio}
+                  onTestVoice={handleTestVoice}
                   onboardingVideo={state.onboardingVideo}
                   onboardingImage={state.onboardingImage}
                   onThemeChange={handleThemeChange} 

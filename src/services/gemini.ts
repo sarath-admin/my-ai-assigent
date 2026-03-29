@@ -6,7 +6,7 @@ function getAI() {
   if (!aiInstance) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is missing. To fix this:\n1. Click the ⚙️ (Settings) icon in the top-right of AI Studio.\n2. Go to 'Secrets'.\n3. Add a new secret with Name: GEMINI_API_KEY and Value: [Your API Key].\n4. Restart the app.");
+      throw new Error("GEMINI_API_KEY is missing. To fix this:\n1. Click the ⚙️ (Settings) icon in the top-right of AI Studio.\n2. Go to 'Secrets'.\n3. Add a new secret with Name: GEMINI_API_KEY and Value: AIzaSyCcrrKi5LzngOTaBP-fg1KyfiaViFWpUf0\n4. Restart the app.");
     }
     aiInstance = new GoogleGenAI({ apiKey });
   }

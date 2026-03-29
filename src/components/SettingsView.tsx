@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Palette, Moon, Sun, Cloud, Video, Image as ImageIcon, Save, Globe, Bell } from 'lucide-react';
+import { ArrowLeft, Palette, Moon, Sun, Cloud, Video, Image as ImageIcon, Save, Globe, Bell, Volume2 } from 'lucide-react';
 
 interface SettingsViewProps {
   theme: 'light' | 'dark' | 'blue';
   language: string;
   isAudioEnabled: boolean;
   onEnableAudio: () => void;
+  onTestVoice: () => void;
   onboardingVideo: string;
   onboardingImage: string;
   onThemeChange: (theme: 'light' | 'dark' | 'blue') => void;
@@ -20,6 +21,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   language,
   isAudioEnabled,
   onEnableAudio,
+  onTestVoice,
   onboardingVideo, 
   onboardingImage, 
   onThemeChange, 
@@ -143,6 +145,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <span className="text-sm font-bold text-slate-700 block">Test & Enable Alarm</span>
                 <span className="text-[10px] text-slate-400 block">{isAudioEnabled ? 'Audio context is active' : 'Click to unlock audio for mobile'}</span>
               </div>
+            </div>
+            <ArrowLeft className="rotate-180 text-slate-300 group-hover:text-blue-400 transition-colors" size={16} />
+          </button>
+
+          <button
+            onClick={onTestVoice}
+            className="w-full flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 group hover:bg-blue-50 transition-colors"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
+                <Volume2 size={16} />
+              </div>
+              <span className="text-sm font-bold text-slate-700">Test Voice Output</span>
             </div>
             <ArrowLeft className="rotate-180 text-slate-300 group-hover:text-blue-400 transition-colors" size={16} />
           </button>
